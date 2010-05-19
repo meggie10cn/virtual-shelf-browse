@@ -1,0 +1,378 @@
+ <?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<style type="text/css">
+  body {
+    font-family: helvetica, sans-serif;
+  }
+
+.code {
+    position: relative;
+    margin-left: 6em;
+    margin-bottom:1em;
+}
+  
+  p {
+    font-family: times, serif;
+    margin-left: 3em;
+    margin-right: 3em;
+  }
+  
+  p.example {
+    font-family: times, serif;
+    margin-left: 6em;
+    margin-right: 3em;
+  }
+
+
+  h2 {
+    margin-left: 1em;
+    color: green;
+  }
+
+
+  h3 {
+    margin-left: 2em;
+    color: orange;
+  }
+  
+  h4 {
+    margin-left: 4em;
+    font-variant:small-caps;
+  }
+  
+  h5 {
+    margin-left: 6em;
+  }
+  
+  h6 {
+    margin-left: 8em;
+  }
+  
+  code {
+    color: blue;
+  }
+  
+   table {
+   margin-left: 4em;
+   
+   }
+  
+  table, td, th {
+    border: solid;
+    border-width: 1px;
+    border-color: black;
+  }
+  
+   th {
+    font-variant:small-caps;
+   }
+</style><!-- project styles -->
+  <title>Documentation : Virtual Shelf Index : NCSU Libraries</title>
+</head>
+<body>
+  <h1>Virtual Shelf Index Web Service Documentation</h1>
+  <p>Cory Lown (cory_lown@ncsu.edu), NCSU Libraries, March 2010</p>
+  <h2>Introduction</h2>
+  <p>The Virtual Shelf Index (VSI) Web Service can support a variety of applications. At its heart is an index of library catalog records that are stored and can be retrieved in call number order. Entry into a specific point in the index can be made by supplying a call number, a catalog key, or a classification type.</p>
+  <p>The VSI Web Service is really two different services: VSI Start, which facilitates entry into the index; and VSI Slice, which retrieves sets of records in call number order.</p>
+  <p>Requests are accepted over HTTP and responses are provided over HTTP as JSON.</p><!-- 
+  <h2>Two Services: Start &amp; Slice</h2>
+  <p>The VSI provides two different services.</p>
+  <p>The Start service facilitates entry into the Index. Given a Call Number, Catalog Key, or Classification Type the Start service returns a Batch ID that identifies that record's location in the Index. The returned Batch ID can then be used to make a request using the Slice service.</p>
+  <p>The Slice service returns a set of records in call number order. It accepts a Batch ID for starting from a specific point in the Index.</p>
+ -->
+  <hr />
+  <h2>The VSI Ingest Script</h2>
+  <p>Under normal circumstances, the ingest script will be run automatically at a regular interval to ingest the latest set of sirsi records into the database for the index.</p>
+  <h3>Ingest Script Location</h3>
+    <div class='code'>
+  <code>YOURSERVER/virtualshelfindex-os/scripts</code>
+  </div>
+
+  <h3>To Run the Script from the Command Line</h3>
+    <div class='code'>
+
+  <code>python vs_index_ingest_calling_app.py</code>
+  </div>
+    <h3>Fatal Errors</h3>
+    <p>
+    The ingest script may generate a fatal error if it cannot connect to the database, if it cannot locate a sirsi file for ingest, or if the number of rows in the new table are more than 5% larger or smaller than the production table. In any of these cases the production table will remain in production and will not be dropped or replaced. In the case that the new table is too large or too small, you may force the new table to replace the production table by running the script from the command line with the force -f flag, as follows:
+    </p>
+        <div class='code'>
+  <code>python vs_index_ingest_calling_app.py -f</code>
+  </div>
+
+  <hr />
+  <h2>The VSI Start Service</h2>
+  <p>The VSI Start service accepts a Call Number, Catalog Key, or Classification Type and returns a Batch ID.</p>
+  <h3>Base Request</h3>
+  <div class='code'>
+    <code>http://YOURSERVER/virtualshelfindex-os/handler/router.php</code>
+  </div>
+  <h3>Base Response</h3>
+  <p>The base request returns the Batch ID that appears at the beginning of the Index.</p>
+  <div class='code'>
+    <code>{"results":[{"batchId":"0"}],"parameters":{"classType":"LC"},"requestUrl":"http:\/\/YOURSERVER\/virtualshelfindex\/start"}</code>
+  </div>
+  <p class='example'>If a Batch ID cannot be returned the service responds with an error.</p>
+  <div class='code'>
+    <code>{"results":[],"parameters":{"catKey":"1"},"requestUrl":"http:\/\/YOURSERVER\/virtualshelfindex\/start","error":"emptyResult"}</code>
+    </div>
+  <h3>Request with Optional Parameters</h3>
+  <h4>Starting from a Call Number</h4>
+  <table>
+    <tr>
+      <th>parameter</th>
+      <th>default value</th>
+      <th>note</th>
+    </tr>
+    <tr>
+      <td>callNum</td>
+      <td>N.A.</td>
+      <td>forgives spaces</td>
+    </tr>
+    <tr>
+      <td>classType</td>
+      <td>LC</td>
+      <td>accepts LC or SUDOC; otherwise reverts to LC</td>
+    </tr>
+  </table>
+  <h5>Example Request</h5>
+  <div class='code'>
+    <code>http://YOURSERVER/virtualshelfindex-os/handler/router.php?service=start&callNum=P100&amp;classType=LC</code>
+  </div>
+  <h5>Example Response</h5>
+  <p class='example'>The response will include the Batch ID of the specified call number or the closest match. When a Call Number parameter is supplied the service first attempts to find a call number in the index that starts with the same sequence of characters (spaces are ignored). If there is not a call number in the index that starts with the parameter supplied, the service attempts to return the closest matching record in the index.</p>
+  <div class='code'>
+    <code>{"results":[{"batchId":"620727"}],"parameters":{"callNum":"P100","classType":"LC","matchType":"startsWith"},"requestUrl":"http:\/\/YOURSERVER\/virtualshelfindex\/start?callNum=P100&amp;classType=LC"}</code>
+  </div>
+
+  <div class='code'>
+    <code>{"results":[{"batchId":"620744"}],"parameters":{"callNum":"P9999","classType":"LC","matchType":"closestMatch"},"requestUrl":"http:\/\/YOURSERVER\/virtualshelfindex\/start?callNum=P9999&amp;classType=LC"}</code>
+  </div>
+  <p class='example'>If a Batch ID cannot be returned the service responds with an error.</p>
+  <div class='code'>
+    <code>{"results":[],"parameters":{"catKey":"1"},"requestUrl":"http:\/\/YOURSERVER\/virtualshelfindex\/start?callNum=P9999&amp;classType=LC","error":"emptyResult"}</code>
+    </div>
+
+  <h4>Starting from a Catalog Key</h4>
+  <table>
+    <tr>
+      <th>parameter</th>
+      <th>default value</th>
+      <th>note</th>
+    </tr>
+    <tr>
+      <td>catKey</td>
+      <td>N.A.</td>
+      <td>accepts positive integers &lt;= 999999999999999; otherwise reverts to 0</td>
+    </tr>
+  </table>
+  <h5>Example Request</h5>
+  <div class='code'>
+    <code>http://YOURSERVER/virtualshelfindex-os/handler/router.php?service=start&catKey=78932</code>
+  </div>
+  <h5>Example Response</h5>
+  <p class='example'>The response will include the Batch ID of the specified Catalog Key. Catalog Key parameters are matched exactly. If the specified Catalog Key does not exist in the Index an error will be returned.</p>
+  <div class='code'>
+    <code>{"results":[{"batchId":"1236805"}],"parameters":{"catKey":"78932"},"requestUrl":"http:\/\/YOURSERVER\/virtualshelfindex\/start?catKey=78932"}</code>
+  </div>
+  <p class='example'>If a Batch ID cannot be returned the service responds with an error.</p>
+  <div class='code'>
+    <code>{"results":[],"parameters":{"catKey":"1"},"requestUrl":"http:\/\/YOURSERVER\/virtualshelfindex\/start?catKey=1","error":"emptyResult"}</code>
+  </div>
+  <h4>Starting from a Classification Type</h4>
+  <table>
+    <tr>
+      <th>parameter</th>
+      <th>default value</th>
+      <th>note</th>
+    </tr>
+    <tr>
+      <td>classType</td>
+      <td>LC</td>
+      <td>accepts LC or SUDOC; otherwise reverts to LC</td>
+    </tr>
+  </table>
+  <h5>Example Request</h5>
+  <div class='code'>
+    <code>http://YOURSERVER/virtualshelfindex-os/handler/router.php?service=start&start?classType=SUDOC</code>
+  </div>
+  <h5>Example Response</h5>
+  <p class='example'>The response will include the Batch ID of the record at the beginning of the classification specified.</p>
+  <div class='code'>
+    <code>{"results":[{"batchId":"1321577"}],"parameters":{"classType":"SUDOC"},"requestUrl":"http:\/\/YOURSERVER\/virtualshelfindex\/start?classType=SUDOC"}</code>
+  </div>
+  <p class='example'>If a Batch ID cannot be returned the service responds with an error.</p>
+  <div class='code'>
+    <code>{"results":[],"parameters":{"catKey":"1"},"requestUrl":"http:\/\/YOURSERVER\/virtualshelfindex\/start?classType=SUDOC","error":"emptyResult"}</code>
+  </div>
+  
+  <h3>Start Response Keys and Values</h3>
+  <table>
+    <tr>
+      <th>key</th>
+      <th>values</th>
+      <th>note</th>
+    </tr>
+    <tr>
+      <td>results</td>
+      <td>a list of dictionaries</td>
+      <td>this contains the results of the query</td>
+    </tr>
+    <tr>
+      <td>batchId</td>
+      <td>a positive integer</td>
+      <td>indictates the record's position in the index</td>
+    </tr>
+    <tr>
+      <td>parameters</td>
+      <td>a dictionary</td>
+      <td>specifies the system or user applied parameters that generated the results</td>
+    </tr>
+    <tr>
+      <td>callNum</td>
+      <td>any string</td>
+      <td>specifies the call number string applied to the query</td>
+    </tr>
+    <tr>
+      <td>matchType</td>
+      <td>startsWith or closestMatch</td>
+      <td>system determined query type; startsWith is a LIKE query, closestMatch is a comparison query</td>
+    </tr>
+    <tr>
+      <td>catKey</td>
+      <td>a positive integer &lt;= 999999999999999</td>
+      <td>specifies the catalog key parameter applied to the query</td>
+    </tr>
+    <tr>
+      <td>classType</td>
+      <td>LC or SUDOC</td>
+      <td>specifies the classification parameter applied to the query</td>
+    </tr>
+    <tr>
+      <td>requestUrl</td>
+      <td>a URL</td>
+      <td>specifies the complete URL sent to web service that generated the response</td>
+    </tr>
+    <tr>
+      <td>error</td>
+      <td>emptyResult</td>
+      <td>only appears if a result cannot be provided</td>
+    </tr>
+  </table>
+  <hr />
+  <h2>The VSI Slice Service</h2>
+  <p>The VSI Slice service accepts a Batch ID and returns a set of Catalog Keys in Call Number order.</p>
+  <h3>Base Request</h3>
+  <p>The base request returns an ordered set of 20 records starting from the beginning of the index.</p>
+  <div class='code'>
+    <code>http://YOURSERVER/virtualshelfindex-os/handler/router.php?service=slice</code>
+  </div>
+  <h3>Base Response</h3>
+  <div class='code'>
+    <code>{"results":[{"batchId":"0","catKey":"502416","minCallNum":"[ .Microfilm] .F251 N896 v.1-v.12:no.14"},{"batchId":"1","catKey":"1994674","minCallNum":"* ebook"},{"batchId":"2","catKey":"549862","minCallNum":"-631 .C62 v.47 NO.7-12 2006"},{"batchId":"3","catKey":"1563606","minCallNum":"B469 .L29 v.19 no.6, 11-12 2003"},{"batchId":"4","catKey":"1867283","minCallNum":"DA125 .A1 R87 2004"},{"batchId":"5","catKey":"2129815","minCallNum":"E806 .E63 2004 E-BOOK"},{"batchId":"6","catKey":"1744804","minCallNum":"HD1690.5 .I53 2001"},{"batchId":"7","catKey":"2129820","minCallNum":"HD4839 .S74 2004 E-BOOK"},{"batchId":"8","catKey":"315671","minCallNum":"HD9001 .P7"},{"batchId":"9","catKey":"1963134","minCallNum":"HD9235 .P8 E-BOOK"},{"batchId":"10","catKey":"296173","minCallNum":"HM1 .S62 new series v. 36 no.1-2 1988"},{"batchId":"11","catKey":"491320","minCallNum":"HN51 .J6 v.29 1950-1951"},{"batchId":"12","catKey":"1644750","minCallNum":"HT392.5 .N4 L58 2003"},{"batchId":"13","catKey":"290737","minCallNum":"J1313 .M42 1962 pt.2 JULY-DEC."},{"batchId":"14","catKey":"1887421","minCallNum":"JC571 .S2313 2005"},{"batchId":"15","catKey":"2129818","minCallNum":"KF154 .M35 2004 E-BOOK"},{"batchId":"16","catKey":"2129814","minCallNum":"KF4548 .E53 2000 E-BOOK"},{"batchId":"17","catKey":"1755596","minCallNum":"LA201 .E456 2004"},{"batchId":"18","catKey":"2049201","minCallNum":"LB2805 .S7424 2008"},{"batchId":"19","catKey":"1752163","minCallNum":"LT7715 .G55 A97 2004 V.1"},{"batchId":"20","catKey":"1371082","minCallNum":"ML74.4 .I47 B36 2000"}],"parameters":{"startBatch":0,"numBefore":0,"numAfter":20},"requestUrl":"http:\/\/YOURSERVER\/virtualshelfindex\/slice"}</code>
+  </div>
+    <p>If the web service cannot serve the request the error response will return an empty set.</p>
+  <div class='code'>
+    <code>{"results":[],"parameters":{"startBatch":"789456123","numBefore":0,"numAfter":20},"requestUrl":"http:\/\/YOURSERVER\/virtualshelfindex\/slice","error":"emptyResult"}</code>
+  </div>
+
+  <h3>Request with Optional Parameters</h3>
+  <table>
+    <tr>
+      <th>parameter</th>
+      <th>default value</th>
+      <th>note</th>
+    </tr>
+    <tr>
+      <td>batchId</td>
+      <td>0</td>
+      <td>accepts positive integers &lt;= 999999999999999; otherwise reverts to 0</td>
+    </tr>
+    <tr>
+      <td>numBefore</td>
+      <td>0</td>
+      <td>accepts positive integers &lt;= 9999; otherwise reverts to 0</td>
+    </tr>
+    <tr>
+      <td>numAfter</td>
+      <td>20</td>
+      <td>accepts positive integers &lt;= 9999; otherwise reverts to 20</td>
+    </tr>
+  </table>
+  <h4>Example Request</h4>
+  <div class='code'>
+    <code>http://YOURSERVER/virtualshelfindex-os/handler/router.php?service=slice&batchId=123123</code>
+  </div>
+  <h4>Example Response</h4>
+  <div class='code'>
+    <code>{"results":[{"batchId":"123123","catKey":"237226","minCallNum":"DD176.8 .D52 1974b"},{"batchId":"123124","catKey":"436402","minCallNum":"DD177 .F8 O26"},{"batchId":"123125","catKey":"681830","minCallNum":"DD177 .P38 A4 1986"},{"batchId":"123126","catKey":"1539297","minCallNum":"DD178 .Y68 2000"},{"batchId":"123127","catKey":"1552429","minCallNum":"DD179 .B56 2002"},{"batchId":"123128","catKey":"380638","minCallNum":"DD179 .F4713"},{"batchId":"123129","catKey":"570918","minCallNum":"DD179 .M3418 1981"},{"batchId":"123130","catKey":"553508","minCallNum":"DD179 .O8 1968"},{"batchId":"123131","catKey":"77121","minCallNum":"DD179 .O813 1970"},{"batchId":"123132","catKey":"172858","minCallNum":"DD179 .R6 1972"},{"batchId":"123133","catKey":"530349","minCallNum":"DD179 .R60 1878 v.1"},{"batchId":"123134","catKey":"714563","minCallNum":"DD179 .R62 1988"},{"batchId":"123135","catKey":"395495","minCallNum":"DD179 .R63 1883 v.1-3"},{"batchId":"123136","catKey":"473843","minCallNum":"DD179 .R63 v.1-3"},{"batchId":"123137","catKey":"577922","minCallNum":"DD180 .H4 1983"},{"batchId":"123138","catKey":"508802","minCallNum":"DD180 .T92"},{"batchId":"123139","catKey":"362789","minCallNum":"DD180.5 .B72"},{"batchId":"123140","catKey":"1749872","minCallNum":"DD180.5 .K44 2004"},{"batchId":"123141","catKey":"189519","minCallNum":"DD180.5 .L43a"},{"batchId":"123142","catKey":"353672","minCallNum":"DD180.5 .M25 2002"},{"batchId":"123143","catKey":"564674","minCallNum":"DD180.5 .M44 1941"}],"parameters":{"startBatch":"123123","numBefore":0,"numAfter":20},"requestUrl":"http:\/\/YOURSERVER\/virtualshelfindex\/slice?batchId=123123"}</code>
+  </div>
+  <p>If the specified batchId does not exist the error response will return an empty set.</p>
+  <div class='code'>
+    <code>{"results":[],"parameters":{"startBatch":"789456123","numBefore":0,"numAfter":20},"requestUrl":"http:\/\/YOURSERVER\/virtualshelfindex\/slice?batchId=789456123","error":"emptyResult"}</code>
+  </div>
+  <h3>Slice Response Keys and Values</h3>
+  <table>
+    <tr>
+      <th>key</th>
+      <th>values</th>
+      <th>note</th>
+    </tr>
+    <tr>
+      <td>results</td>
+      <td>a list of dictionaries</td>
+      <td>this contains the results of the query</td>
+    </tr>
+    <tr>
+      <td>batchId</td>
+      <td>a positive integer</td>
+      <td>the record's position in the index</td>
+    </tr>
+    <tr>
+      <td>catKey</td>
+      <td>a positive integer</td>
+      <td>the catalog key associated with the batch ID</td>
+    </tr>
+    <tr>
+      <td>minCallNum</td>
+      <td>a call number</td>
+      <td>the minimum call number associated with the batch ID</td>
+    </tr>
+    <tr>
+      <td>parameters</td>
+      <td>a dictionary</td>
+      <td>specifies the system or user applied parameters that generated the results</td>
+    </tr>
+    <tr>
+      <td>startBatch</td>
+      <td>a positive integer &lt;= 999999999999999</td>
+      <td>specifies the batch ID applied to the query</td>
+    </tr>
+    <tr>
+      <td>numBefore</td>
+      <td>a positive integer &lt;= 9999</td>
+      <td>specifies the number of items requested to appear before the startBatch</td>
+    </tr>
+    <tr>
+      <td>numAfter</td>
+      <td>a positive integer &lt;= 9999</td>
+      <td>specifies the number of items requested to appear after the startBatch</td>
+    </tr>
+    <tr>
+      <td>requestUrl</td>
+      <td>a URL</td>
+      <td>specifies the complete URL sent to web service that generated the response</td>
+    </tr>
+    <tr>
+      <td>error</td>
+      <td>emptyResult</td>
+      <td>only appears if a result cannot be provided</td>
+    </tr>
+  </table>
+</body>
+</html>
