@@ -48,6 +48,8 @@ import os
 import re
 import pprint
 import string
+import sys
+import traceback
 import MySQLdb
 from optparse import OptionParser
 import warnings
@@ -156,8 +158,11 @@ for line in complete_list:
         try:
             vsi_func.db_index_insert_values(cursor, db_new_index_table, line_for_insert)
         except:
+            # Traceback and logging of trace message
+            # contributed by Tod Olson, University of Chicago Library
+            trace_message = traceback.format_exc()
             ingest_summary = vsi_func.ingest_summary(ingest_summary,count_lines_from_sirsi,count_lines_included_pre_proc,group_count,primary_key)
-            error_message = 'Could not insert data into NEW table.'
+            error_message = 'Could not insert data into NEW table:\n' +  trace_message
             vsi_func.fatal_errors(error_message, log_file, ingest_summary)
         primary_key = primary_key + 1
         previous_item_key = line[0]
