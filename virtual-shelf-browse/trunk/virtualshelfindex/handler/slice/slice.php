@@ -39,7 +39,7 @@ final class sliceHandler extends handler
         $this->startBatch = $startBatch;
         $this->numBefore = $numBefore;
         $this->numAfter = $numAfter;
-        $this->query = "SELECT group_id, catalog_key, MIN(call_number) as min_call_number FROM vs_index_os WHERE group_id BETWEEN " . $startBatch . " - " . $numBefore . " AND  " . $startBatch . " + " . $numAfter . " GROUP BY group_id;";
+        $this->query = "SELECT group_id, catalog_key, MIN(call_number) as min_call_number FROM sorted_call_no_index WHERE group_id BETWEEN " . $startBatch . " - " . $numBefore . " AND  " . $startBatch . " + " . $numAfter . " GROUP BY group_id;";
         $this->parameters['startBatch'] = $startBatch;
         $this->parameters['numBefore'] = $numBefore;
         $this->parameters['numAfter'] = $numAfter;

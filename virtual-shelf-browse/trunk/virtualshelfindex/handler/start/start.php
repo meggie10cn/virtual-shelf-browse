@@ -47,7 +47,7 @@ final class startHandlerCatKey extends startHandler
     function __construct($catKey)
         {
         $this->catKey = $catKey;
-        $this->query = "SELECT group_id FROM vs_index_os WHERE catalog_key = '" . $catKey ."' LIMIT 1";
+        $this->query = "SELECT group_id FROM sorted_call_no_index WHERE catalog_key = '" . $catKey ."' LIMIT 1";
         $this->parameters['catKey'] = $catKey;
         }
     }
@@ -64,7 +64,7 @@ final class startHandlerCallNum extends startHandler
         {        
         $this->callNum = mysql_escape_string($callNum);
         $this->classType = $classType;
-        $this->query = "SELECT group_id FROM vs_index_os WHERE call_number_search LIKE '" . $callNum ."%' AND classification = '" . $classType . "' ORDER BY call_number_padded LIMIT 1";
+        $this->query = "SELECT group_id FROM sorted_call_no_index WHERE call_number_search LIKE '" . $callNum ."%' AND classification = '" . $classType . "' ORDER BY call_number_padded LIMIT 1";
         $this->parameters['callNum'] = $callNum;
         $this->parameters['classType'] = $classType;
         $this->parameters['matchType'] = 'startsWith';
@@ -80,7 +80,7 @@ final class startHandlerDefault extends startHandler
     function __construct($classType)
         {
         $this->classType = $classType;
-        $this->query = "SELECT group_id FROM vs_index_os WHERE classification = '" . $classType ."' ORDER BY call_number_padded LIMIT 1";
+        $this->query = "SELECT group_id FROM sorted_call_no_index WHERE classification = '" . $classType ."' ORDER BY call_number_padded LIMIT 1";
         $this->parameters['classType'] = $classType;
         }
     }
@@ -112,7 +112,7 @@ final class startHandlerBefore extends startHandler
         
         $this->callNum = mysql_escape_string($padded_call_number); //NOT CONNECTED TO DB HERE.
         $this->classType = $classType;
-        $this->query = "SELECT group_id FROM vs_index_os WHERE call_number_padded > '" . $padded_call_number ."' AND classification = '" . $classType . "' AND call_number_padded != '' LIMIT 1;";
+        $this->query = "SELECT group_id FROM sorted_call_no_index WHERE call_number_padded > '" . $padded_call_number ."' AND classification = '" . $classType . "' AND call_number_padded != '' LIMIT 1;";
         $this->parameters['callNum'] = $padded_call_number;
         $this->parameters['classType'] = $classType;
         $this->parameters['matchType'] = 'closestMatch';
