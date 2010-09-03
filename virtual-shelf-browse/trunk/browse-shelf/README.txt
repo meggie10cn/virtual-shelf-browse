@@ -61,16 +61,33 @@ DIRECTORIES AND FILES
 
 CONFIGURATION
 
+browse-shelf was written using Java 1.5. It might work in Java 1.6; not tested.
+
+Ensure that your servlet container (Tomcat, etc) has access to the JSTL tag library. Tomcat
+	doesn't seem to come bundled with these, for instance. In the Tomcat case, you'll have to
+	download the files jstl.jar and standard.jar from the JSTL website and place them in
+	Tomcat's commons/lib directory. Tomcat 5 users should use JSTL 1.1 and Tomcat 6 users should
+	use JSTL 1.2.
+
 Specify the url for an instance of the Virtual Shelf Index service in web.xml, under the servlet
 	declaration for the Browse servlet, in the init-param named vsiUrl.
 	 
 	NCSU's test implementation of the Virtual Shelf Index is available at
 	http://webdev.lib.ncsu.edu/virtualshelfindex/ for testing purposes (service live at the time of 
-	this writing, but availability not guaranteed).
+	this writing, but availability not guaranteed). NCSU's virtual shelf index uses slightly different
+	URLs than the ones provided for in the code in Browse.java since we have mod rewrite configured.
+	If you want to use the NCSU service for testing, make the following changes to Browse.java:
 	
-To see the shelf browse in operation with dummy bibliographic data, build the application (with the 
-	above change in place) with ANT and load the WAR file into your favorite web application server.
+	Browse.java 129-130:
+	
+		JSONObject result = getData(vsiUrl + "slice?batchId=" + batchId + "&numBefore=" + numberBefore + "&numAfter=" + numberAfter);
+		log.info(vsiUrl + "slice?batchId=" + batchId + "&numBefore=" + numberBefore + "&numAfter=" + numberAfter);
+	
+	Browse.java 211:
+	
+		String url = vsiUrl + "start?classType="+classType+"&callNum=" + URLEncoder.encode(callNumber, "UTF-8");
 
+		
 You can get some debugging information by adding a "debug=true" parameter to your query string. This 
 	will display some of the search parameters in the application window and will also indicate the 
 	Batch ID value for each item returned.

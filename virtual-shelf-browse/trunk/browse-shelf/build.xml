@@ -7,19 +7,38 @@
 
 <project basedir="." name="browse-shelf" default="main">
 
-	
+    <!-- bin.dir, lib.dir, src.dir added for compile target - TAO -->
+    <property name="bin.dir" value="bin"/>
+    <property name="lib.dir" value="lib"/>
+    <property name="src.dir" value="src"/>
+    <property name="dist.dir" value="dist"/>
+    <property name="jsp.dir" value="jsp"/>
+    <property name="include.dir" value="include"/>
+    <property name="image.dir" value="images" />
+    <!-- Directory where servlet-api.jar lives, needed only if compiling from command line - TAO -->
+    <property name="servlet-api.dir" value="/usr/local/apache-tomcat-6.0.18/lib"/>
+    
+    <target name="init">
+        <!-- Not certain what's supposed to happen here.  Used to just set properties. -TAO -->
+    </target>
+    
 	<target name="clean" depends="init">
 	   <delete dir="${dist.dir}"/>
-	</target>
-	
-	<target name="init">
-	  <property name="dist.dir" value="dist"/>
-	  <property name="jsp.dir" value="jsp"/>
-	  <property name="include.dir" value="include"/>
-	  <property name="image.dir" value="images" />
+	   <delete dir="${bin.dir}"/>
 	</target>
 
-    <target name="war" depends="clean">
+    <target name="compile" depends="clean">
+      <mkdir dir="${bin.dir}"/>
+      <javac srcdir="${src.dir}" destdir="${bin.dir}" classpathref="classpath"/>
+    </target>
+
+    <path id="classpath">
+      <fileset dir="${lib.dir}" includes="**/*.jar"/>
+      <!-- Need the location of servlet-api.jar if compiling from command line - TAO -->
+      <fileset dir="${servlet-api.dir}" includes="servlet-api.jar"/>
+    </path>
+    
+    <target name="war" depends="compile">
     	<mkdir dir="${dist.dir}"/>
         <war destfile="${dist.dir}/browse.war" webxml="./web.xml">
         <!-- <fileset dir="html"/> -->
@@ -34,6 +53,6 @@
         </war>
     </target>
 	
-	<target name="main" depends="init,clean,war"/>
+	<target name="main" depends="init,clean,compile,war"/>
 
 </project>

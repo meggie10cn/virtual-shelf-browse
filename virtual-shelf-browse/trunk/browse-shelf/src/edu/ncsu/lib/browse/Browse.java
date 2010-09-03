@@ -126,9 +126,8 @@ public class Browse extends HttpServlet {
 			if(httpRequest.getParameter("after")!=null){
 				numberAfter = Integer.parseInt(httpRequest.getParameter("after"));
 			}
-			JSONObject result = getData(vsiUrl + "slice?batchId=" + batchId + "&numBefore=" + numberBefore + "&numAfter=" + numberAfter);
-			log.info(vsiUrl + "slice?batchId=" + batchId + "&numBefore=" + numberBefore + "&numAfter=" + numberAfter);
-			JSONArray results = result.getJSONArray("results");
+			JSONObject result = getData(vsiUrl + "router.php?service=slice&batchId=" + batchId + "&numBefore=" + numberBefore + "&numAfter=" + numberAfter);
+			log.info(vsiUrl + "router.php?service=slice&batchId=" + batchId + "&numBefore=" + numberBefore + "&numAfter=" + numberAfter);			JSONArray results = result.getJSONArray("results");
 			//log.info("Got " + results.length() + " results");
 	
 			ArrayList<String> requestKeys = new ArrayList<String>();
@@ -209,7 +208,7 @@ public class Browse extends HttpServlet {
 	}
 
 	private String[] retrieveBatchId(String callNumber, String classType) throws IOException, JSONException {
-		String url = vsiUrl + "start?classType="+classType+"&callNum=" + URLEncoder.encode(callNumber, "UTF-8");
+		String url = vsiUrl + "router.php?service=start&classType="+classType+"&callNum=" + URLEncoder.encode(callNumber, "UTF-8");
 		JSONObject result = getData(url);
 		
 		JSONArray array = result.getJSONArray("results");
