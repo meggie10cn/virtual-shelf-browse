@@ -374,5 +374,16 @@
       <td>only appears if a result cannot be provided</td>
     </tr>
   </table>
-</body>
+  <h2>Debugging</h2>
+  <p>Just a few tips on debugging the initial installation</p>
+  <h3>VSI setup error / empty results</h3>
+  <p>If the base request has an error, you can send the text of a MySQL connection error 
+    to the browser by adding <code>echo mysql_error();</code> to <tt>handler.php</tt> as follows:</p>
+  <pre class='code'>if (!$con)
+    {
+    echo mysql_error();
+    $vsi_error = true;
+    }</pre>
+  <p>If the error says "No such file or directory", your MySQL and PHP configurations 
+    may disagree on the location of the MySQL socket file.</p>
 </html>

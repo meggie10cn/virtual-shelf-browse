@@ -26,13 +26,14 @@
 
 function db_connect()
     {
-    $con = @mysql_connect("HOST","USERNAME","PASSWORD"); // MODIFY
+    $con = @mysql_connect("@mysql.host@","@mysql.user@","@mysql.password@"); // MODIFY
     if (!$con)
         {
+	echo mysql_error();
         $vsi_error = true;
         }
     //select database
-    @mysql_select_db("DATABASENAME", $con); // MODIFY
+    @mysql_select_db("@mysql.dbname@", $con); // MODIFY
     }
     
 function get_result_object($query)

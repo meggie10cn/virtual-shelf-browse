@@ -50,6 +50,7 @@ import pprint
 import string
 import sys
 import traceback
+import ConfigParser
 import MySQLdb
 from optparse import OptionParser
 import warnings
@@ -57,6 +58,7 @@ import warnings
 # define allowable command line arguments/flags
 use = "Usage: %prog argument1"
 parser = OptionParser(usage = use)
+parser.add_option("-c", "--config", dest="configfile", default="vshelf.cfg", help="Config file to read for MySQL connection info.")
 parser.add_option("-f", "--force", dest="force", action="store_true", default=False, help="Force script to update table.")
 options, args = parser.parse_args()
 
@@ -82,11 +84,16 @@ complete_list = []
 check_for_unsorted_lines_pattern = re.compile ('\|.+\|.+\|.+\|.+\|.+\|.+\|$')
 xx_callnumbers = re.compile('^\s*?ACQ\s*?SER\s*?XX\s*?\(.*?\)')
 
+# Read config file
+config = ConfigParser.RawConfigParser()
+config.readfp(open(options.configfile))
+
 # define database login values
-db_login_dict = {'host':'HOST', # MODIFY
-'username': 'USERNAME', # MODIFY
-'password': 'PW',  # MODIFY
-'name': 'NAME'} # MODIFY
+db_login_dict = {'host':config.get('mysql', 'host'),
+'username': config.get('mysql', 'user'),
+'password': config.get('mysql', 'password'),
+'name': config.get('mysql', 'dbname')}
+
 
 # define database table names
 db_current_index_table = 'sorted_call_no_index'
@@ -123,16 +130,6 @@ except IOError, e:
     error_message = "Error(" + str(code) + "): " + message + sirsi_extract_location
     vsi_func.fatal_errors(error_message, log_file, ingest_summary)
 
-# read in lines from the sirsi output and check to make sure
-# all ingested lines from the output have the expected number
-# of fields. Lines with extra fields are skipped.
-for line in file:
-    count_lines_from_sirsi += 1
-    if not check_for_unsorted_lines_pattern.search(line):
-        line_list = vsi_func.pre_proc_sirsi_output(line)
-        complete_list.append(line_list)
-        count_lines_included_pre_proc += 1
-        
 # create new table for new index and add placeholder for current table if it does not exist
 try:
     vsi_func.db_index_create_table(cursor,db_new_index_table,db_columns_dict)
@@ -148,9 +145,18 @@ primary_key = 0
 group_count = -1
 previous_item_key = 0
 
+# read in lines from the sirsi output and check to make sure
+# all ingested lines from the output have the expected number
+# of fields. Lines with extra fields are skipped.
+
 # adds an item_id and group_id to each record, applies functions to fields
 # and attempts to insert the processed lines into the new database table.
-for line in complete_list:
+for l in file:
+    count_lines_from_sirsi += 1
+    if check_for_unsorted_lines_pattern.search(l):
+        continue
+    line  = vsi_func.pre_proc_sirsi_output(l)
+    count_lines_included_pre_proc += 1
     if not xx_callnumbers.match(line[2]):
         if line[0] != previous_item_key:
             group_count = group_count + 1

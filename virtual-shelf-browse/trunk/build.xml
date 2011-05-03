@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="name of project" default="compile" basedir=".">
+
+    <property file="build.properties"/>
+    <property file="${user.home}/build.properties"/>
+
+    <property name="index.data.dir" value="virtualshelfindex/data"/>
+    <property name="index.log.dir" value="virtualshelfindex/logs"/>
+    <property name="index.script.dir" value="virtualshelfindex/scripts"/>
+    <property name="index.import.config" value="${index.script.dir}/vshelf.cfg"/>
+    <property name="index.handler.dir" value="virtualshelfindex/handler"/>
+
+    <filter filtersfile="build.properties"/>
+    
+    <target name="prepare">
+        <mkdir dir="${index.data.dir}"/>
+        <mkdir dir="${index.log.dir}"/>
+        <antcall target="importconfig"/>
+    </target>
+
+    <target name="importconfig"
+        description="fill in import config values from build properties">
+        <copy
+            filtering="true" 
+            file="${index.import.config}.tmpl"
+            tofile="${index.import.config}"/>
+    </target>
+    
+    <target name="install-index-service">
+        <copy description="copy PHP scripts to runnable destination"
+            todir="${index.php.dest}" filtering="true">
+            <fileset dir="${index.handler.dir}"/>
+        </copy>
+    </target>
+</project>

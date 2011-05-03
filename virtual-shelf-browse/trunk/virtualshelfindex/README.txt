@@ -40,23 +40,23 @@ GENERAL PROJECT INFO
 
 WEB SERVICE DOCUMENTATION
 
-   http://YOURSERVER/virtualshelfindex/documentation/html/documentation.html
+   http://YOURSERVER/virtualshelfindex-os/virtualshelfindex/documentation/html/documentation.html
 
 BASE REQUEST
 
-    http://YOURSERVER/virtualshelfindex/handler/router.php
+    http://YOURSERVER/virtualshelfindex-os/virtualshelfindex/handler/router.php
     
 START REQUESTS
 
-    http://YOURSERVER/virtualshelfindex/handler/router.php?
+    http://YOURSERVER/virtualshelfindex-os/virtualshelfindex/handler/router.php?
     service=start&catKey=1394451
     
-    http://YOURSERVER/virtualshelfindex/handler/router.php?
+    http://YOURSERVER/virtualshelfindex-os/virtualshelfindex/handler/router.php?
     service=start&callNum=BF353%20.W356%202000
 
 SLICE REQUEST
 
-    http://YOURSERVER/virtualshelfindex/handler/router.php?
+    http://YOURSERVER/virtualshelfindex-os/virtualshelfindex/handler/router.php?
     service=slice&batchId=500
     
 GETTING STARTED

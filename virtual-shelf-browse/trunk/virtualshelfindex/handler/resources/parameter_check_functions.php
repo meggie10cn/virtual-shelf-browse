@@ -24,7 +24,7 @@
 // THE SOFTWARE.
 
 
-// these functions check and modifie the user input
+// these functions check and modify the user input
 // may need to be updated/modified for use at other institutions
 
 function check_callNum($input)
