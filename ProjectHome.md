@@ -1,0 +1,5 @@
+# About the Project #
+
+The Virtual Shelf Browse project attempts to replicate in an online environment the experience of browsing a bookshelf for item discovery. This is one way of providing users with the ability to “find more like this” in the library. The application also provides forgiving call number searching that supports "begins with" searches and "your search would be here" capabilities.
+
+The Virtual Shelf Browse project comprises a database, back-end web service, and dummy front end application for browsing and searching a series of items in LC or SUDOC call number order. The project was built as a replacement for the browse searching interface build into the integrated library system (ILS) at NCSU Libraries. Because the Virtual Shelf Browse application is abstracted from the ILS, it can be implemented so long as the underlying data can be exported from the ILS in a text delimited format.
